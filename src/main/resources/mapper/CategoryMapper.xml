@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cystrix.blog.dao.CategoryDao">
+    <insert id="insert" parameterType="com.cystrix.blog.entity.Category" useGeneratedKeys="true" keyProperty="id">
+        insert into category(id, name, pid) value (null, #{name}, #{pid})
+    </insert>
+
+    <update id="update" parameterType="com.cystrix.blog.entity.Category">
+        update category
+        <set>
+            <if test="name != null">`name` = #{name}</if>
+        </set>
+        where `id` = #{id} and `is_delete` = 0
+    </update>
+
+    <select id="selectCategoryById" resultType="com.cystrix.blog.entity.Category">
+        select * from category where `id` = #{categoryId} and `is_delete` = 0
+    </select>
+
+    <select id="selectCategoryByArticleId"   parameterType="integer" resultType="com.cystrix.blog.entity.Category">
+        select c.* from article a
+        join article_category ac on a.id = ac.article_id
+        join category c on ac.category_id = c.id
+        where  a.is_delete != 1 and a.id = #{articleId}
+    </select>
+
+    <update id="deleteById" parameterType="integer">
+        update category set `is_delete` = 1 where `id` = #{id}
+    </update>
+
+    <select id="categoryTree" resultType="com.cystrix.blog.entity.Category" parameterType="Integer">
+        with recursive category_tree as (
+            select c.id, c.pid, c.name, c.create_time, 1 as level,
+                (select count(*) from article_category ac where ac.category_id = c.id) articleNum
+            from category c where c.id = 1 AND c.is_delete != 1
+            union
+            select c.id, c.pid, c.NAME, c.create_time, ct.level + 1,
+                (select count(*) from article_category ac where ac.category_id = c.id) articleNum
+            from category c join category_tree ct on ct.id = c.pid
+            where c.is_delete != 1 and c.pid is not null
+        ) select * from category_tree
+    </select>
+</mapper>

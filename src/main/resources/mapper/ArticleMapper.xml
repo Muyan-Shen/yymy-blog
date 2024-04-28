@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cystrix.blog.dao.ArticleDao">
+
+    <insert id="insert" parameterType="com.cystrix.blog.entity.Article" useGeneratedKeys="true" keyProperty="id">
+        insert into article(id, title, content, digest, wordNum) value(null, #{title}, #{content}, #{digest}, #{wordNum})
+    </insert>
+
+    <select id="selectPageWithoutContent" resultType="com.cystrix.blog.view.ArticleView">
+        select a.id, a.create_time, a.update_time, a.like_count,  a.view_count, a.wordNum, a.title, a.digest,
+               c.id categoryId, c.name categoryName, ac2.name coverImg   from article a
+        left join article_category ac on ac.article_id = a.id
+        left join category c on ac.category_id = c.id
+        left join article_cover ac2 on a.id = ac2.article_id
+        where a.`is_delete` != 1 order by a.id desc
+    </select>
+
+    <select id="selectById" parameterType="integer" resultType="com.cystrix.blog.entity.Article">
+        select * from article where  id = #{id} and is_delete != 1
+    </select>
+
+    <select id="selectArticleViewById" parameterType="integer" resultType="com.cystrix.blog.view.ArticleView">
+        select a.*, c.id categoryId, c.name categoryName, ac2.name coverImg from article a
+        left join article_category ac on a.id = ac.article_id
+        left join category c on c.id = ac.category_id
+        left join article_cover ac2 on a.id = ac2.article_id
+        where a.id = #{val} and a.is_delete != 1
+    </select>
+
+    <update id="update" parameterType="com.cystrix.blog.entity.Article">
+        update article
+        <set>
+            <if test="title != null">`title` = #{title},</if>
+            <if test="content != null">`content` = #{content},</if>
+            <if test="digest != null">`digest` = #{digest},</if>
+            <if test="commentCount != null">`comment_count` = #{commentCount},</if>
+            <if test="wordNum != null">`wordNum` = #{wordNum},</if>
+            <if test="viewCount != null">`view_count` = #{viewCount},</if>
+            <if test="likeCount != null">`like_count` = #{likeCount},</if>
+            <if test="hotRank != null">`hot_rank` = #{hotRank}</if>
+        </set>
+        where `id` = #{id} and `is_delete` != 1
+    </update>
+
+    <update id="deleteById" parameterType="integer">
+        update article set `is_delete` = 1 where `id` = #{id}
+    </update>
+
+    <select id="articleStatisInfo" resultType="com.cystrix.blog.entity.SiteInfo">
+        select count(*) articleNum, sum(wordNum) wordsNum,
+            (select count(distinct real_ip) as visitorsNum from site_history ) visitorsNum,
+            (select count(real_ip) as visitNum from site_history) visitNum
+        from article where is_delete != 1
+    </select>
+
+    <select id="selectArticleWithPage" resultType="com.cystrix.blog.view.ArticleView"
+            parameterType="com.cystrix.blog.vo.ArticleVo">
+        select a.id, a.digest, a.title, a.create_time, a.update_time, a.wordNum, a.view_count, a.like_count, ac.name coverImg
+        from article a left join article_cover ac on a.id = ac.article_id
+        where a.is_delete != 1
+        <if test="title != null">
+            and title like concat('%', #{title}, '%')
+        </if>
+        <if test="startTime != null and endTime != null">
+            and a.create_time between #{startTime} and #{endTime}
+        </if>
+    </select>
+
+    <update id="addLikeCount" parameterType="integer">
+        update article set like_count = like_count + 1 where id = #{articleId} and is_delete != 1
+    </update>
+
+</mapper>
