@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cystrix.blog.dao.ArticleCategoryDao">
+    <sql id="tb">`article_category`</sql>
+    <sql id="baseCols">`id`,`article_id`,`category_id`</sql>
+
+    <insert id="insert" parameterType="com.cystrix.blog.entity.ArticleCategory" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO <include refid="tb"/> (<include refid="baseCols"/>)
+        VALUE (NULL, #{articleId}, #{categoryId})
+    </insert>
+
+    <delete id="deleteByArticleIdAndCategoryId" parameterType="com.cystrix.blog.entity.ArticleCategory">
+        DELETE FROM <include refid="tb"/>
+        WHERE `category_id` = #{categoryId} AND `article_id` = #{articleId}
+    </delete>
+
+    <delete id="deleteByCategoryId" parameterType="integer">
+        delete from article_category where  category_id = #{categoryId}
+    </delete>
+
+    <select id="selectArticleIdByCategoryId" parameterType="integer" resultType="integer">
+        SELECT <include refid="baseCols"/> FROM <include refid="tb"/> WHERE `category_id` = `categoryId`
+    </select>
+
+    <update id="update" parameterType="com.cystrix.blog.entity.ArticleCategory">
+        update article_category set category_id = #{categoryId} where article_id = #{articleId}
+    </update>
+
+    <select id="selectArticleNumByCategoryId" resultType="com.cystrix.blog.view.ArticleCategoryView">
+        select c.*, sub.*
+        from ( select count( distinct ac.article_id ) articleNum, ac.category_id categoryId from article_category ac group by ac.category_id ) sub
+        left join category c on sub.categoryId = c.id
+        order by sub.articleNum desc limit 5
+    </select>
+
+</mapper>

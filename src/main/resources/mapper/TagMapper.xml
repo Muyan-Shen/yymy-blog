@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cystrix.blog.dao.TagDao">
+    <sql id="tb">`tag`</sql>
+    <sql id="baseCols">`id`,`name`,`create_time`,`update_time`,`is_delete`</sql>
+
+    <insert id="insert" parameterType="com.cystrix.blog.entity.Tag" useGeneratedKeys="true" keyProperty="id">
+       insert into tag(id, name, color) value (null, #{name}, #{color})
+    </insert>
+
+    <select id="selectPage" parameterType="com.cystrix.blog.query.PageQuery" resultType="com.cystrix.blog.entity.Tag">
+        SELECT <include refid="baseCols"/> FROM <include refid="tb"/>
+        WHERE `is_delete` = 0
+        LIMIT #{pageSize}
+        OFFSET #{offset}
+    </select>
+
+    <select id="selectTagListByIds" resultType="com.cystrix.blog.entity.Tag">
+        SELECT  <include refid="baseCols"/> FROM <include refid="tb"/>
+        WHERE `is_delete` = 0 AND `id` IN
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="selectTagById" resultType="com.cystrix.blog.entity.Tag">
+        SELECT  <include refid="baseCols"/> FROM <include refid="tb"/>
+        WHERE `is_delete` = 0 AND `id` = #{id}
+    </select>
+
+    <update id="update" parameterType="com.cystrix.blog.entity.Tag">
+        UPDATE <include refid="tb"/>
+        <set>
+            <if test="name != null">`name` = #{name},</if>
+        </set>
+        WHERE `id` = #{id} AND `is_delete` = 0
+    </update>
+
+    <update id="deleteById" parameterType="integer">
+        UPDATE <include refid="tb"/> SET `is_delete` = 1 WHERE `id` = #{id}
+    </update>
+
+    <select id="getAll" resultType="com.cystrix.blog.entity.Tag">
+        select id, name, color,  create_time, update_time from tag where is_delete != 1
+    </select>
+</mapper>

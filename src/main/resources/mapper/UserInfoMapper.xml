@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cystrix.blog.dao.UserInfoDao" >
+
+    <insert id="insert" parameterType="com.cystrix.blog.dao.UserInfoDao" useGeneratedKeys="true" keyProperty="id">
+        insert into user_info(id,`username`,`password`,`email`,`nickname`,`avatar`,`motto`)
+        value (null, #{username}, #{password}, #{email}, #{nickname}, #{avatar}, #{motto})
+    </insert>
+
+    <select id="selectUserInfoByEmail" parameterType="string" resultType="com.cystrix.blog.entity.UserInfo">
+        select * FROM user_info where `email` = #{email} and `is_delete` = 0
+    </select>
+
+    <select id="selectUserInfoByUsernameAndPassword" parameterType="com.cystrix.blog.entity.UserInfo" resultType="com.cystrix.blog.entity.UserInfo">
+        select * from user_info
+        where `username` = #{username} and `password` = #{password} and `is_delete` = 0
+    </select>
+
+    <select id="selectUserInfoByEmailAndPassword" parameterType="com.cystrix.blog.entity.UserInfo" resultType="com.cystrix.blog.entity.UserInfo">
+        SELECT * FROM user_info WHERE `email` = #{email} AND `password` = #{password} AND `is_delete` = 0
+    </select>
+
+    <select id="selectUserInfoById" parameterType="integer" resultType="com.cystrix.blog.entity.UserInfo">
+        SELECT * FROM user_info WHERE `id` = #{value} AND `is_delete` = 0
+    </select>
+
+    <select id="selectUserInfoView" resultType="com.cystrix.blog.view.UserInfoView">
+        select  u.nickname, u.email, u.avatar,
+            (select count(a.id) from article a where a.is_delete != 1) articleNum,
+            (select count(t.id) from tag t where t.is_delete != 1) tagNum,
+            (select  count(c.id) from category c where  c.is_delete != 1) categoryNum
+        from user_info u where u.is_delete != 1 and u.id = 1
+    </select>
+
+    <update id="update" parameterType="com.cystrix.blog.entity.UserInfo">
+        UPDATE user_info
+        <set>
+            <if test="password != null">`password` = #{password},</if>
+            <if test="email != null">`email` = #{email},</if>
+            <if test="avatar != null">`avatar` = #{avatar},</if>
+            <if test="motto != null">`motto` = #{motto},</if>
+            <if test="nickname != null">`nickname` = #{nickname},</if>
+            <if test="updateTime != null">`update_time` = #{updateTime}</if>
+        </set>
+        WHERE `is_delete` = 0 AND `id` = #{id}
+    </update>
+
+</mapper>
